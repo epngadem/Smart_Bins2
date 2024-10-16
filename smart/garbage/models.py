@@ -27,7 +27,7 @@ class Bin(models.Model):
 
 
 class DataCollection(models.Model):
-    bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='data_collections')
+    bin = models.ForeignKey(Bin, related_name='data_collections', on_delete=models.CASCADE)  # Clé étrangère vers Bin
     level = models.FloatField()
     temperature = models.FloatField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
