@@ -1,13 +1,17 @@
 from django.shortcuts import render, redirect
+from django.db.models import Avg
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, viewsets
 from .models import Bin, DataCollection
 from .forms import BinForm, DataCollectionForm
+from .serializers import BinSerializer, DataCollectionSerializer
 
 # Afficher la liste des poubelles avec alertes
 def bin_list(request):
     bins = Bin.objects.all()
     
     for bin in bins:
-        # Récupérer les dernières données collectées pour chaque poubelle
         latest_data = bin.data_collections.latest('timestamp') if bin.data_collections.exists() else None
         
         if latest_data:
@@ -47,7 +51,7 @@ def add_bin(request):
         form = BinForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('bin_list')  # Rediriger vers la liste des poubelles après ajout
+            return redirect('bin_list')
     else:
         form = BinForm()
     return render(request, 'garbage/add_bin.html', {'form': form})
@@ -58,7 +62,7 @@ def add_data(request):
         form = DataCollectionForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('bin_list')  # Rediriger vers la liste des poubelles après ajout de données
+            return redirect('bin_list')
     else:
         form = DataCollectionForm()
     return render(request, 'garbage/add_data.html', {'form': form})
@@ -68,3 +72,16 @@ def bin_detail(request, bin_id):
     bin = Bin.objects.get(pk=bin_id)
     data_collections = bin.data_collections.all()
     return render(request, 'garbage/bin_detail.html', {'bin': bin, 'data_collections': data_collections})
+
+# Vue pour calculer et afficher la moyenne des températures
+def moyenne_temperature(request):
+    moyenne = DataCollection.objects.all().aggregate(Avg('temperature'))['temperature__avg']
+    return render(request, 'garbage/moyenne_temperature.html', {'moyenne': moyenne})
+
+class BinViewSet(viewsets.ModelViewSet):
+    queryset = Bin.objects.all()
+    serializer_class = BinSerializer
+
+class DataCollectionViewSet(viewsets.ModelViewSet):
+    queryset = DataCollection.objects.all()
+    serializer_class = DataCollectionSerializer

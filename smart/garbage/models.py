@@ -34,4 +34,7 @@ class DataCollection(models.Model):
     signal_strength = models.FloatField()
 
     def __str__(self):
-        return f"Data for {self.bin.bin_id} at {self.timestamp}"
+               return f"Temp: {self.temperature}°C at {self.timestamp}"
+
+
+
