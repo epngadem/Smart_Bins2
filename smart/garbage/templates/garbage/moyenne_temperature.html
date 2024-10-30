@@ -1,0 +1,20 @@
+{% extends 'garbage/base.html' %}
+
+{% block content %}
+    <div class="container">
+        <h1>Moyenne des Températures</h1>
+
+        <div class="moyenne-section">
+            {% if moyenne %}
+                <p class="moyenne-value">La moyenne des températures enregistrées est de : {{ moyenne|floatformat:2 }} °C</p>
+            {% else %}
+                <p class="no-data">Aucune donnée de température disponible.</p>
+            {% endif %}
+        </div>
+
+        <div class="back-link">
+            <a href="{% url 'bin_list' %}">Retour à la liste des poubelles</a>
+        </div>
+    </div>
+{% endblock %}
+

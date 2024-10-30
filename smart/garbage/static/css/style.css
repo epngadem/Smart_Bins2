@@ -1,0 +1,260 @@
+/* Styles globaux */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f1f1f1;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Titre principal */
+h1 {
+    text-align: center;
+    color: #007bff;
+    padding: 20px 0;
+    background-color: #e9f5ff;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #007bff;
+}
+
+/* Conteneur des cartes de poubelles */
+.bin-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* Cartes des poubelles */
+.bin-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    margin: 15px;
+    padding: 20px;
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.bin-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Informations sur les poubelles */
+.bin-info {
+    font-size: 14px;
+}
+
+.bin-info strong {
+    color: #555;
+}
+
+/* Liste des données collectées */
+.data-collection {
+    margin-top: 10px;
+}
+
+.data-collection ul {
+    padding-left: 0;
+    list-style: none;
+    margin: 0;
+}
+
+.data-collection li {
+    background-color: #f1f1f1;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+/* Alertes */
+.alert {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.alert img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+/* Alertes de remplissage */
+.alert-green {
+    border: 2px solid green;
+    color: green;
+    background-color: #e8f8e8;
+}
+
+.alert-orange {
+    border: 2px solid orange;
+    color: orange;
+    background-color: #fff6e5;
+}
+
+.alert-red {
+    border: 2px solid red;
+    color: red;
+    background-color: #ffe5e5;
+}
+
+/* Icônes */
+.alert img {
+    width: 24px;
+    height: 24px;
+}
+
+.alert-message {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+/* Conteneur principal */
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Pied de page */
+.footer {
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* Menu de navigation */
+.navbar {
+    background-color: #007bff;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar h1 {
+    color: white;
+    margin: 0;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    display: inline;
+    margin-right: 20px;
+}
+
+.nav-links li a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-links li a:hover {
+    text-decoration: underline;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    background-color: #333;
+}
+
+nav ul li {
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    display: block;
+    border-radius: 5px;
+}
+
+nav ul li a:hover {
+    background-color: #555;
+}
+
+.bin-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Styles pour la page de la moyenne des températures */
+.moyenne-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.moyenne-title {
+    font-size: 24px;
+    color: #007bff;
+    margin-bottom: 20px;
+}
+
+.moyenne-value {
+    font-size: 48px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.moyenne-unit {
+    font-size: 18px;
+    color: #666;
+}
+
+.moyenne-icon {
+    font-size: 100px;
+    color: #007bff;
+    margin-bottom: 20px;
+}
+
+.moyenne-description {
+    font-size: 18px;
+    color: #555;
+    margin-top: 10px;
+    line-height: 1.6;
+}

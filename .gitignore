@@ -1,0 +1,15 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+*
+# Exclure les environnements virtuels
+env/
+
+# Exclure les fichiers de configuration sensibles
+*.cfg
+*.env
+
+# Exclure les fichiers temporaires
+*.pyc
+__pycache__/
+
+# Exclure la base de données locale
+db.sqlite3

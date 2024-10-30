@@ -1,0 +1,10 @@
+{% extends 'garbage/base.html' %}
+
+{% block content %}
+    <h2>Ajouter des données pour une poubelle</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Ajouter les données</button>
+    </form>
+{% endblock %}

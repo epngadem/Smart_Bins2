@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bin Monitoring System</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <!-- En-tête avec menu de navigation -->
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">Accueil</a></li>
+                <li><a href="{% url 'add_bin' %}">Ajouter une poubelle</a></li>
+                <li><a href="{% url 'add_data' %}">Ajouter des données</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <h1>Bin Monitoring System</h1>
+
+    <!-- Liens pour filtrer les poubelles par statut -->
+    <div>
+        <a href="?status=Disponible">Afficher les poubelles disponibles</a> |
+        <a href="?status=Pleine">Afficher les poubelles pleines</a> |
+        <a href="?status=En cours de Collecte">Afficher les poubelles en cours de collecte</a> |
+        <a href="?">Afficher toutes les poubelles</a>
+    </div>
+
+    <!-- Affichage des poubelles -->
+    <div class="bin-container">
+        {% for bin in bins %}
+            <div class="bin-card">
+                <div class="bin-info">
+                    <strong>Bin ID:</strong> {{ bin.bin_id }}<br>
+                    <strong>Location:</strong> {{ bin.location }}<br>
+                    <strong>Capacity:</strong> {{ bin.capacity }} L<br>
+                    <strong>Type:</strong> {{ bin.type }}<br>
+                    <strong>Status:</strong> {{ bin.status }}<br>
+                    <strong>Last Emptied At:</strong> {{ bin.last_emptied_at }}<br>
+                </div>
+
+                <div class="data-collection">
+                    <h3>Data Collection:</h3>
+                    <ul>
+                        {% for data in bin.data_collections.all %}
+                            <li>
+                                <strong>Level:</strong> {{ data.level }} %<br>
+                                <strong>Temperature:</strong> {{ data.temperature }} °C<br>
+                                <strong>Signal Strength:</strong> {{ data.signal_strength }} %<br>
+                                <strong>Date:</strong> {{ data.timestamp }}<br>
+                            </li>
+                        {% empty %}
+                            <li>Aucune donnée disponible pour cette poubelle.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Afficher les alertes de niveau de remplissage -->
+                {% if latest_data %}
+                    {% if latest_data.level <= 30 %}
+                        <div class="alert alert-green">
+                            <img src="{% static 'images/green.png' %}" alt="Poubelle vide">
+                            Poubelle vide ou moins de 30 % pleine
+                        </div>
+                    {% elif latest_data.level > 30 and latest_data.level <= 70 %}
+                        <div class="alert alert-orange">
+                            <img src="{% static 'images/orange.png' %}" alt="Poubelle mi-pleine">
+                            Poubelle entre 30 % et 70 % pleine
+                        </div>
+                    {% elif latest_data.level > 70 %}
+                        <div class="alert alert-red">
+                            <img src="{% static 'images/red.png' %}" alt="Poubelle pleine">
+                            Poubelle plus de 70 % pleine
+                        </div>
+                    {% endif %}
+
+                    <!-- Afficher les alertes de température si la température est supérieure à 25°C -->
+                    {% if latest_data.temperature > 25 %}
+                        <div class="alert alert-red">
+                            <img src="{% static 'images/red.png' %}" alt="Alerte de température">
+                            Température élevée : {{ latest_data.temperature }} °C
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
+
+
+
+
+
+
