@@ -85,3 +85,32 @@ class BinViewSet(viewsets.ModelViewSet):
 class DataCollectionViewSet(viewsets.ModelViewSet):
     queryset = DataCollection.objects.all()
     serializer_class = DataCollectionSerializer
+
+
+class TemperatureDataAPIView(APIView):
+    def post(self, request):
+        # Sérialisation des données reçues
+        serializer = DataCollectionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()  # Sauvegarde des données dans la base de données
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        # Récupère toutes les collectes de données avec leurs températures, niveaux, et IDs de poubelle
+        data = DataCollection.objects.values('bin__id', 'temperature', 'level', 'timestamp')
+        return Response(data, status=status.HTTP_200_OK)
+
+#def get(self, request):
+        # Sérialisation des données reçues
+        
+        #moyenne = DataCollection.objects.all().aggregate(Avg('temperature'))['temperature__avg']
+        #serializer = DataCollectionSerializer(data=moyenne)
+        #return Response(moyenne, status=status.HTTP_200_OK)
+
+ #def get(self, request):
+        # Récupère toutes les collectes de données avec leurs températures, niveaux et IDs de poubelle
+          #data_collections = bin.data_collections.values('temperature', 'level', 'timestamp')
+         #return Response(data_collections, status=status.HTTP_200_OK)
+       
+        r #eturn Response(data, status=status.HTTP_200_OK)

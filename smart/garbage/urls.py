@@ -2,7 +2,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .views import BinViewSet, DataCollectionViewSet
+from .views import BinViewSet, DataCollectionViewSet, TemperatureDataAPIView
 
 # Création du routeur DRF pour les API
 router = DefaultRouter()
@@ -17,4 +17,5 @@ urlpatterns = [
     path('home/', views.home, name='home'),  # Page d'accueil
     path('moyenne-temperature/', views.moyenne_temperature, name='moyenne_temperature'),  # Moyenne des températures
     path('api/', include(router.urls)),  # Inclusion des URLs du routeur API
+    path('api/temperature/', TemperatureDataAPIView.as_view(), name='temperature_data_api'),
 ]

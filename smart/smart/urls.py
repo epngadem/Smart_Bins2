@@ -18,6 +18,8 @@ Including another URLconf
 # smart/urls.py
 from django.contrib import admin
 from django.urls import include, path
+# from garbage.views import TemperatureDataAPIView  # Import correct
+
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
