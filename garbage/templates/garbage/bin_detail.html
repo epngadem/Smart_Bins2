@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Détails de la Poubelle {{ bin.bin_id }}</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Informations</h4>
+            <p><strong>Type:</strong> {{ bin.type }}</p>
+            <p><strong>Emplacement:</strong> {{ bin.location }}</p>
+            <p><strong>Capacité:</strong> {{ bin.capacity }} L</p>
+            <p><strong>Statut:</strong> {% if bin.is_full %}<span class="text-danger">Pleine</span>{% else %}<span class="text-success">Vide</span>{% endif %}</p>
+        </div>
+    </div>
+    <hr>
+    <h4>Données Collectées</h4>
+    <table class="table table-striped mt-3">
+        <thead class="thead-dark">
+            <tr>
+                <th>Date</th>
+                <th>Niveau de Remplissage (%)</th>
+                <th>Température (°C)</th>
+                <th>Signal</th>
+            </tr>
+        </thead>
+        <tbody id="data-table-body">
+            {% for data in data_collections %}
+            <tr>
+                <td>{{ data.timestamp }}</td>
+                <td>{{ data.level }}</td>
+                <td>{{ data.temperature }}</td>
+                <td>{{ data.signal_strength }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'logout' %}" class="btn btn-danger mt-3">Se Déconnecter</a>
+</div>
+
+<script>
+// Fonction JavaScript pour actualiser les données toutes les 5 secondes
+function fetchLatestData() {
+    fetch("{% url 'collect_data' %}")
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById("data-table-body");
+            tbody.innerHTML = "";  // Efface les anciennes données
+            data.forEach(item => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${item.timestamp}</td>
+                    <td>${item.level}</td>
+                    <td>${item.temperature}</td>
+                    <td>${item.signal_strength}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        })
+        .catch(error => console.log("Erreur lors de la récupération des données :", error));
+}
+
+// Actualise les données toutes les 5 secondes
+setInterval(fetchLatestData, 5000);
+</script>
+{% endblock %}
+

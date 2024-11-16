@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bin Monitoring System{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <!-- Menu de navigation -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <!-- Tu peux ajouter un logo ici -->
+                <h1>Bin Monitoring System</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{% url 'home' %}">Accueil</a></li>
+                <li><a href="{% url 'bin_list' %}">Afficher les poubelles</a></li>
+                <li><a href="{% url 'add_bin' %}">Ajouter une poubelle</a></li>
+                <li><a href="{% url 'add_data' %}">Ajouter des données</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenu spécifique de chaque page -->
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Pied de page -->
+    <footer class="footer">
+        <p>&copy; 2024 Bin Monitoring System. Tous droits réservés.</p>
+        <p>
+            <a href="#">Termes d'utilisation</a> |
+            <a href="#">Politique de confidentialité</a>
+        </p>
+    </footer>
+
+</body>
+</html>

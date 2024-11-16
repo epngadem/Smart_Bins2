@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Details of Bin {{ bin.bin_id }}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <h1>Details of Bin {{ bin.bin_id }}</h1>
+
+    <div class="bin-info">
+        <strong>Location:</strong> {{ bin.location }}<br>
+        <strong>Capacity:</strong> {{ bin.capacity }} L<br>
+        <strong>Type:</strong> {{ bin.type }}<br>
+    </div>
+
+    {% if latest_data %}
+        <div class="data-collection">
+            <h3>Latest Data:</h3>
+            <p><strong>Level:</strong> {{ latest_data.level }} %</p>
+            <p><strong>Temperature:</strong> {{ latest_data.temperature }} °C</p>
+            <p><strong>Timestamp:</strong> {{ latest_data.timestamp }}</p>
+
+            <!-- Alerts based on level and temperature -->
+            {% if latest_data.level <= 30 %}
+                <div class="alert alert-green">
+                    Poubelle vide ou moins de 30 % pleine
+                </div>
+            {% elif latest_data.level > 30 and latest_data.level <= 70 %}
+                <div class="alert alert-orange">
+                    Poubelle entre 30 % et 70 % pleine
+                </div>
+            {% elif latest_data.level > 70 %}
+                <div class="alert alert-red">
+                    Poubelle plus de 70 % pleine
+                </div>
+            {% endif %}
+
+            {% if latest_data.temperature > 25 %}
+                <div class="alert alert-red">
+                    Température élevée : {{ latest_data.temperature }} °C
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>Aucune donnée de collecte disponible pour cette poubelle.</p>
+    {% endif %}
+</body>
+</html>

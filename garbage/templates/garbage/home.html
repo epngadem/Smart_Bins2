@@ -1,0 +1,13 @@
+{% extends 'garbage/base.html' %}
+
+{% block content %}
+    <h2>Bienvenue sur le système de surveillance des poubelles</h2>
+    <p>Sur cette interface, vous pouvez :</p>
+    <ul>
+        <li><a href="{% url 'bin_list' %}">Afficher la liste des poubelles</a></li>
+        <li><a href="{% url 'add_bin' %}">Ajouter une nouvelle poubelle</a></li>
+        <li><a href="{% url 'add_data' %}">Ajouter des données pour une poubelle</a></li>
+    </ul>
+{% endblock %}
+
+
