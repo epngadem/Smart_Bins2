@@ -1,0 +1,75 @@
+{% extends "garbage/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Vos Poubelles</h2>
+
+    {% if bins %}
+        <h4>Liste des Poubelles</h4>
+        <ul>
+            {% for bin in bins %}
+                <li>{{ bin.1 }} - {{ bin.2 }} ({{ bin.3 }} L)</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Aucune poubelle attribuée.</p>
+    {% endif %}
+
+    <hr>
+    <h4>Graphique d'Analyse des Données</h4>
+    <canvas id="userBinChart" width="400" height="200"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartData = JSON.parse('{{ data_collections|escapejs }}');
+
+        const ctx = document.getElementById('userBinChart').getContext('2d');
+        const userBinChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.map(item => item[1]), // Timestamp
+                datasets: [
+                    {
+                        label: 'Niveau de Remplissage (%)',
+                        data: chartData.map(item => item[2]), // Level
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                    },
+                    {
+                        label: 'Température (°C)',
+                        data: chartData.map(item => item[3]), // Temperature
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Analyse des Données par Utilisateur',
+                    },
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date et Heure',
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Valeurs',
+                        },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    </script>
+</div>
+{% endblock %}
