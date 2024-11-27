@@ -8,11 +8,45 @@ from .models import Bin, DataCollection
 from .forms import BinForm, DataCollectionForm
 from .serializers import BinSerializer, DataCollectionSerializer, DataCollectionBoxSerializer
 from rest_framework.permissions import IsAuthenticated
-from .utils import send_alert_email
 from .models import Bin
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from rest_framework.permissions import AllowAny
+from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db import connection
 
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def fetch_latest_data(request, bin_id='B001'):  # Définir une valeur par défaut pour bin_id
+    """
+    Vue pour récupérer les dernières données collectées pour une poubelle spécifique.
+    Si aucun ID n'est fourni, 'B001' est utilisé par défaut.
+    """
+    try:
+        # Récupérer la poubelle par son ID (par défaut 'B001' si non fourni)
+        bin_instance = Bin.objects.get(bin_id=bin_id)
+
+        # Récupérer les dernières données collectées
+        latest_data = bin_instance.data_collections.order_by('-timestamp').first()
+
+        if latest_data:
+            data = {
+                'timestamp': latest_data.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                'level': latest_data.level,
+                'temperature': latest_data.temperature,
+                'signal_strength': latest_data.signal_strength,
+                'is_full': latest_data.level > 70,
+            }
+            return Response(data, status=200)
+        else:
+            return Response({'error': "Aucune donnée disponible pour cette poubelle."}, status=404)
+
+    except Bin.DoesNotExist:
+        return Response({'error': f"Poubelle avec l'ID {bin_id} introuvable."}, status=404)
 
 def bin_list(request):
     bins = Bin.objects.all()
@@ -88,14 +122,14 @@ def moyenne_temperature(request):
     moyenne = DataCollection.objects.all().aggregate(Avg('temperature'))['temperature__avg']
     return render(request, 'garbage/moyenne_temperature.html', {'moyenne': moyenne})
 
+
 class BinViewSet(viewsets.ModelViewSet):
     queryset = Bin.objects.all()
     serializer_class = BinSerializer
-
 class DataCollectionViewSet(viewsets.ModelViewSet):
     queryset = DataCollection.objects.all()
     serializer_class = DataCollectionSerializer
-
+    permission_classes = [AllowAny]  # Permet l'accès public à cette API
 
 class TemperatureDataAPIView(APIView):
     def post(self, request):
@@ -153,25 +187,128 @@ def single_bin_view(request, bin_id):
 
 @login_required
 def bin_detail_view(request):
-    # On récupère la poubelle avec l'identifiant 1
-    bin = Bin.objects.get(bin_id='1')  
-    data_collections = bin.data_collections.all().order_by('-timestamp')
-    
-    # Vérifie le statut de remplissage
-    if data_collections.exists():
-        latest_data = data_collections.first()
-        bin.is_full = latest_data.level > 70  # Met à jour le statut
-        bin.save()
-        if bin.is_full:
-            check_bin_status(bin)  # Appelle la fonction pour envoyer un email d'alerte
+    try:
+        # Charger la poubelle spécifique (B001)
+        bin = Bin.objects.get(bin_id='B001')
+        data_collections = bin.data_collections.all().order_by('-timestamp')
 
-    return render(request, 'garbage/bin_detail.html', {
-        'bin': bin,
-        'data_collections': data_collections,
-    })
+        # Préparer les données pour le dernier point collecté
+        latest_data = data_collections.first() if data_collections.exists() else None
+        is_full = latest_data.level > 70 if latest_data else False
 
+        # Préparer les données pour le graphique
+        timestamps = []
+        levels = []
+        temperatures = []
+
+        for data in data_collections:
+            timestamps.append(data.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
+            levels.append(data.level)
+            temperatures.append(data.temperature)
+
+        chart_data = {
+            "timestamps": timestamps,
+            "levels": levels,
+            "temperatures": temperatures,
+        }
+
+        # Convertir les données en JSON pour les transmettre au template
+        chart_data_json = json.dumps(chart_data, cls=DjangoJSONEncoder)
+
+        return render(request, 'garbage/bin_detail.html', {
+            'bin': bin,
+            'latest_data': latest_data,
+            'is_full': is_full,
+            'chart_data': chart_data_json,
+        })
+    except Bin.DoesNotExist:
+        return render(request, 'garbage/bin_detail.html', {'error': "Poubelle introuvable."})
 def check_bin_status(bin):
     if bin.is_full:  
-        subject = f"Alerte : La poubelle {bin.bin_id} est presque pleine"
-        message = f"La poubelle {bin.bin_id} est remplie à {bin.capacity}%."
-        send_alert_email(subject, message, ['komornella63@gmail.com'])
+        print(f"Alerte simulée : La poubelle {bin.bin_id} est presque pleine.")
+
+
+from django.urls import path
+from .views import fetch_latest_data
+
+   
+class BinDataView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, bin_id):
+        try:
+            data = DataCollection.objects.filter(bin__bin_id=bin_id).order_by('-timestamp').first()
+            if data:
+                return Response({
+                    "bin_id": bin_id,
+                    "temperature": data.temperature,
+                    "level": data.level,
+                    "timestamp": data.timestamp,
+                    "signal_strength": data.signal_strength,
+                }, status=200)
+            else:
+                return Response({"message": "Aucune donnée disponible pour cette poubelle."}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+    def post(self, request, bin_id):
+        try:
+            # Vérifiez si la poubelle existe
+            bin_instance = Bin.objects.get(bin_id=bin_id)
+
+            # Sérialiser les données reçues
+            serializer = DataCollectionSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(bin=bin_instance)
+                return Response({"message": "Données enregistrées avec succès"}, status=201)
+            return Response(serializer.errors, status=400)
+        except Bin.DoesNotExist:
+            return Response({"error": f"Poubelle avec bin_id {bin_id} introuvable"}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+def index(request):
+    try:
+        # Récupérer la poubelle B001
+        bin_b001 = Bin.objects.get(bin_id="B001")
+
+        # Récupérer les données collectées pour la poubelle B001
+        data_collections = DataCollection.objects.filter(bin=bin_b001).order_by('timestamp')
+
+        # Préparer les données pour le graphique
+        data = {
+            'timestamps': [dc.timestamp.strftime('%Y-%m-%d %H:%M:%S') for dc in data_collections],
+            'levels': [dc.level for dc in data_collections],
+            'temperatures': [dc.temperature for dc in data_collections],
+        }
+
+        return render(request, 'garbage/index.html', {'bin': bin_b001, 'data': data})
+
+    except Bin.DoesNotExist:
+        return render(request, 'garbage/index.html', {'error': "Poubelle B001 introuvable."})
+
+
+@login_required
+def user_bins_view(request):
+    user = request.user.username  # Récupérer le nom d'utilisateur
+    table_prefix = f"{user}_bin_view"
+    data_table_prefix = f"{user}_datacollection_view"
+
+    try:
+        with connection.cursor() as cursor:
+            # Récupérer les poubelles
+            cursor.execute(f"SELECT * FROM {table_prefix};")
+            bins = cursor.fetchall()
+
+            # Récupérer les données collectées
+            cursor.execute(f"SELECT * FROM {data_table_prefix};")
+            data_collections = cursor.fetchall()
+
+        return render(request, 'garbage/user_bins.html', {
+            'bins': bins,
+            'data_collections': data_collections,
+        })
+    except Exception as e:
+        return render(request, 'garbage/user_bins.html', {
+            'error': str(e),
+        })

@@ -3,7 +3,9 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from django.contrib.auth.views import LogoutView
-from .views import BinViewSet, DataCollectionViewSet, TemperatureDataAPIView
+from .views import BinViewSet, DataCollectionViewSet, TemperatureDataAPIView, BinDataView
+from .views import fetch_latest_data
+from django.contrib.auth.views import LoginView
 
 # Création du routeur DRF pour les API
 router = DefaultRouter()
@@ -24,5 +26,12 @@ urlpatterns = [
     path('bin/<int:bin_id>/', views.single_bin_view, name='single_bin'),
     path('bin/1/', views.bin_detail_view, name='bin_detail'),
     path('logout/', LogoutView.as_view(), name='logout'),
-
+    path('api/bin/<str:bin_id>/', BinDataView.as_view(), name='bin_data_view'),
+    path('api/bin/<str:bin_id>/latest/', fetch_latest_data),
+    path('login/', LoginView.as_view(template_name='garbage/login.html'), name='login'),
+    path('bins/', views.user_bins_view, name='user_bins'),
 ]
+    
+
+
+

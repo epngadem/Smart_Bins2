@@ -10,13 +10,12 @@ body {
 /* Titre principal */
 h1 {
     text-align: center;
-    color: #007bff;
+    color: black; /* Couleur noire */
     padding: 20px 0;
-    background-color: #e9f5ff;
+    background-color: #e9f5ff; /* Fond bleu clair */
     margin-bottom: 20px;
-    border-bottom: 2px solid #007bff;
+    border-bottom: 2px solid #007bff; /* Bordure bleue */
 }
-
 /* Conteneur des cartes de poubelles */
 .bin-container {
     display: flex;

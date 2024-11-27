@@ -1,65 +1,143 @@
-{% extends "base.html" %}
+{% extends "garbage/base.html" %}
+
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Détails de la Poubelle {{ bin.bin_id }}</h2>
+    <h2 class="text-center mb-4">Détails et Analyse de la Poubelle {{ bin.bin_id }}</h2>
+
+    <!-- Informations sur la poubelle -->
     <div class="row">
         <div class="col-md-6">
             <h4>Informations</h4>
             <p><strong>Type:</strong> {{ bin.type }}</p>
             <p><strong>Emplacement:</strong> {{ bin.location }}</p>
             <p><strong>Capacité:</strong> {{ bin.capacity }} L</p>
-            <p><strong>Statut:</strong> {% if bin.is_full %}<span class="text-danger">Pleine</span>{% else %}<span class="text-success">Vide</span>{% endif %}</p>
+            <p><strong>Statut:</strong> 
+                <span id="bin-status" class="{% if is_full %}text-danger{% else %}text-success{% endif %}">
+                    {% if is_full %} Pleine {% else %} Vide {% endif %}
+                </span>
+            </p>
         </div>
     </div>
     <hr>
-    <h4>Données Collectées</h4>
-    <table class="table table-striped mt-3">
-        <thead class="thead-dark">
-            <tr>
-                <th>Date</th>
-                <th>Niveau de Remplissage (%)</th>
-                <th>Température (°C)</th>
-                <th>Signal</th>
-            </tr>
-        </thead>
-        <tbody id="data-table-body">
-            {% for data in data_collections %}
-            <tr>
-                <td>{{ data.timestamp }}</td>
-                <td>{{ data.level }}</td>
-                <td>{{ data.temperature }}</td>
-                <td>{{ data.signal_strength }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <a href="{% url 'logout' %}" class="btn btn-danger mt-3">Se Déconnecter</a>
-</div>
 
-<script>
-// Fonction JavaScript pour actualiser les données toutes les 5 secondes
-function fetchLatestData() {
-    fetch("{% url 'collect_data' %}")
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.getElementById("data-table-body");
-            tbody.innerHTML = "";  // Efface les anciennes données
-            data.forEach(item => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${item.timestamp}</td>
-                    <td>${item.level}</td>
-                    <td>${item.temperature}</td>
-                    <td>${item.signal_strength}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        })
-        .catch(error => console.log("Erreur lors de la récupération des données :", error));
-}
+    <!-- Dernière Donnée Collectée -->
+    <h4>Dernière Donnée Collectée</h4>
+    <div id="latest-data">
+        {% if latest_data %}
+        <p><strong>Date :</strong> <span id="latest-date">{{ latest_data.timestamp }}</span></p>
+        <p><strong>Niveau de Remplissage :</strong> <span id="latest-level">{{ latest_data.level }}</span>%</p>
+        <p><strong>Température :</strong> <span id="latest-temperature">{{ latest_data.temperature }}</span>°C</p>
+        <p><strong>Signal :</strong> <span id="latest-signal">{{ latest_data.signal_strength }}</span></p>
+        {% else %}
+        <p>Aucune donnée disponible pour le moment.</p>
+        {% endif %}
+    </div>
 
-// Actualise les données toutes les 5 secondes
-setInterval(fetchLatestData, 5000);
-</script>
-{% endblock %}
+    <!-- Graphique d'analyse -->
+    <hr>
+    <h4>Graphique d'Analyse des Données</h4>
+    <canvas id="binChart" width="400" height="200"></canvas>
 
+    <!-- Indicateur d'erreur -->
+    <div id="error-message" class="alert alert-danger mt-3" style="display: none;">
+        Impossible de récupérer les données. Vérifiez votre connexion ou contactez un administrateur.
+    </div>
+
+    <!-- Inclure Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+       const binId = "{{ bin.bin_id|default:'B001' }}"; // Définit 'B001' comme valeur par défaut si bin_id est vide
+
+        const initialChartData = JSON.parse('{{ chart_data|escapejs }}'); // Données initiales du graphique
+    
+        const ctx = document.getElementById('binChart').getContext('2d');
+        const binChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: initialChartData.timestamps,
+                datasets: [
+                    {
+                        label: 'Niveau de Remplissage (%)',
+                        data: initialChartData.levels,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                    },
+                    {
+                        label: 'Température (°C)',
+                        data: initialChartData.temperatures,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Analyse des Données - Poubelle ${binId}`,
+                    },
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date et Heure',
+                        },
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Valeurs',
+                        },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    
+        function fetchLatestData() {
+            fetch(`/garbage/api/bin/${binId}/latest/`)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`Erreur HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    if (data) {
+                        // Mettre à jour les informations affichées
+                        document.getElementById('latest-date').textContent = data.timestamp || 'Non disponible';
+                        document.getElementById('latest-level').textContent = data.level !== null ? `${data.level}%` : 'Non disponible';
+                        document.getElementById('latest-temperature').textContent = data.temperature !== null ? `${data.temperature}°C` : 'Non disponible';
+    
+                        // Mise à jour du graphique
+                        binChart.data.labels.push(data.timestamp);
+                        binChart.data.datasets[0].data.push(data.level);
+                        binChart.data.datasets[1].data.push(data.temperature);
+    
+                        // Limiter à 10 points maximum sur le graphique
+                        if (binChart.data.labels.length > 10) {
+                            binChart.data.labels.shift();
+                            binChart.data.datasets[0].data.shift();
+                            binChart.data.datasets[1].data.shift();
+                        }
+    
+                        binChart.update();
+                    }
+                })
+                .catch((error) => {
+                    console.error('Erreur lors de la récupération des données :', error);
+                });
+        }
+    
+        // Actualisation automatique toutes les 5 secondes
+        setInterval(fetchLatestData, 5000);
+    
+        // Appel initial pour charger les premières données
+        fetchLatestData();
+    </script>
+    
+    {% endblock %}

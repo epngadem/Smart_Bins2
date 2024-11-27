@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-3&gv1ax#p_fun%@12^&
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1', '192.168.20.105']
+ALLOWED_HOSTS = ['127.0.0.1','192.168.20.105']
 
 
 # Application definition
@@ -61,11 +61,13 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'smart.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),  # Répertoire global pour les templates
+            os.path.join(BASE_DIR, 'smart', 'garbage', 'templates'),  # Répertoire spécifique à l'application garbage
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -77,6 +79,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'smart.wsgi.application'
 LOGIN_URL = '/login/'
@@ -148,6 +151,7 @@ APPEND_SLASH = False
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication'
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -168,9 +172,9 @@ SIMPLE_JWT = {
 
 
 # settings.py
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'komornella63@gmail.com'   # Remplacez par votre adresse e-mail
-EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_PASSWORD', '1234')  # Utilisez le mot de passe d'application
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'komornella63@gmail.com'
+# EMAIL_HOST_PASSWORD = 'mot_de_passe_application_generé'

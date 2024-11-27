@@ -1,13 +1,32 @@
 {% extends 'garbage/base.html' %}
 
+{% block title %}Accueil - Bin Monitoring System{% endblock %}
+
 {% block content %}
+<div class="home-container">
     <h2>Bienvenue sur le système de surveillance des poubelles</h2>
     <p>Sur cette interface, vous pouvez :</p>
-    <ul>
+    <ul class="actions">
         <li><a href="{% url 'bin_list' %}">Afficher la liste des poubelles</a></li>
         <li><a href="{% url 'add_bin' %}">Ajouter une nouvelle poubelle</a></li>
         <li><a href="{% url 'add_data' %}">Ajouter des données pour une poubelle</a></li>
     </ul>
+
+    <hr>
+
+    <h3>Données en direct de la poubelle {{ bin.identifier }}</h3>
+    <p><strong>Emplacement :</strong> {{ bin.location }}</p>
+
+    {% if latest_data %}
+        <p><strong>Dernière mise à jour :</strong> {{ latest_data.timestamp }}</p>
+        <p><strong>Température :</strong> {{ latest_data.temperature }} °C</p>
+        <p><strong>Niveau :</strong> {{ latest_data.level }} %</p>
+    {% else %}
+        <p>Aucune donnée disponible pour cette poubelle.</p>
+    {% endif %}
+</div>
 {% endblock %}
+
+
 
 
