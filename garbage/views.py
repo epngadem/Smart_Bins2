@@ -184,17 +184,27 @@ def single_bin_view(request, bin_id):
     
     return render(request, 'garbage/single_bin.html', {'bin': bin, 'latest_data': latest_data})
 
-
 @login_required
 def bin_detail_view(request):
     try:
         # Charger la poubelle spécifique (B001)
         bin = Bin.objects.get(bin_id='B001')
-        data_collections = bin.data_collections.all().order_by('-timestamp')
+        data_collections = bin.data_collections.all().order_by('-timestamp')[:20]
 
         # Préparer les données pour le dernier point collecté
         latest_data = data_collections.first() if data_collections.exists() else None
         is_full = latest_data.level > 70 if latest_data else False
+
+        # Déterminer la classe Bootstrap pour l'alerte
+        if latest_data:
+            if latest_data.level > 80:
+                alert_class = 'danger'
+            elif latest_data.level > 50:
+                alert_class = 'warning'
+            else:
+                alert_class = 'success'
+        else:
+            alert_class = 'secondary'  # Cas où aucune donnée n'est disponible
 
         # Préparer les données pour le graphique
         timestamps = []
@@ -220,12 +230,11 @@ def bin_detail_view(request):
             'latest_data': latest_data,
             'is_full': is_full,
             'chart_data': chart_data_json,
+            'alert_class': alert_class,
         })
     except Bin.DoesNotExist:
         return render(request, 'garbage/bin_detail.html', {'error': "Poubelle introuvable."})
-def check_bin_status(bin):
-    if bin.is_full:  
-        print(f"Alerte simulée : La poubelle {bin.bin_id} est presque pleine.")
+
 
 
 from django.urls import path
@@ -288,27 +297,21 @@ def index(request):
         return render(request, 'garbage/index.html', {'error': "Poubelle B001 introuvable."})
 
 
-@login_required
-def user_bins_view(request):
-    user = request.user.username  # Récupérer le nom d'utilisateur
-    table_prefix = f"{user}_bin_view"
-    data_table_prefix = f"{user}_datacollection_view"
 
-    try:
-        with connection.cursor() as cursor:
-            # Récupérer les poubelles
-            cursor.execute(f"SELECT * FROM {table_prefix};")
-            bins = cursor.fetchall()
+def user_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, "Connexion réussie !")
+            return redirect('home')  # Changez 'home' par la vue où vous voulez rediriger après connexion
+        else:
+            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+    return render(request, 'garbage/login.html')  # Template pour la page de connexion
 
-            # Récupérer les données collectées
-            cursor.execute(f"SELECT * FROM {data_table_prefix};")
-            data_collections = cursor.fetchall()
-
-        return render(request, 'garbage/user_bins.html', {
-            'bins': bins,
-            'data_collections': data_collections,
-        })
-    except Exception as e:
-        return render(request, 'garbage/user_bins.html', {
-            'error': str(e),
-        })
+def user_logout(request):
+    logout(request)
+    messages.info(request, "Déconnexion réussie.")
+    return redirect('login')  # Redirige vers la page de connexion après déconnexion

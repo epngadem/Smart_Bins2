@@ -257,3 +257,7 @@ nav ul li a:hover {
     margin-top: 10px;
     line-height: 1.6;
 }
+
+.titleBig{
+    background: none;
+}

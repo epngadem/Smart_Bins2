@@ -29,8 +29,13 @@ urlpatterns = [
     path('api/bin/<str:bin_id>/', BinDataView.as_view(), name='bin_data_view'),
     path('api/bin/<str:bin_id>/latest/', fetch_latest_data),
     path('login/', LoginView.as_view(template_name='garbage/login.html'), name='login'),
-    path('bins/', views.user_bins_view, name='user_bins'),
+    #path('bins/', views.user_bins_view, name='user_bins'),
+    #path('login/', views.user_login, name='login'),
+    #path('logout/', views.user_logout, name='logout'),
+    #path('bins/', views.user_bins_view, name='user_bins'),
+    #path('bin/<str:bin_id>/', views.bin_detail_view, name='bin_detail'),
 ]
+
     
 
 

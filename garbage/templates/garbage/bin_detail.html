@@ -2,57 +2,101 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Détails et Analyse de la Poubelle {{ bin.bin_id }}</h2>
-
-    <!-- Informations sur la poubelle -->
-    <div class="row">
-        <div class="col-md-6">
-            <h4>Informations</h4>
-            <p><strong>Type:</strong> {{ bin.type }}</p>
-            <p><strong>Emplacement:</strong> {{ bin.location }}</p>
-            <p><strong>Capacité:</strong> {{ bin.capacity }} L</p>
-            <p><strong>Statut:</strong> 
-                <span id="bin-status" class="{% if is_full %}text-danger{% else %}text-success{% endif %}">
-                    {% if is_full %} Pleine {% else %} Vide {% endif %}
-                </span>
-            </p>
-        </div>
-    </div>
-    <hr>
-
-    <!-- Dernière Donnée Collectée -->
-    <h4>Dernière Donnée Collectée</h4>
-    <div id="latest-data">
-        {% if latest_data %}
-        <p><strong>Date :</strong> <span id="latest-date">{{ latest_data.timestamp }}</span></p>
-        <p><strong>Niveau de Remplissage :</strong> <span id="latest-level">{{ latest_data.level }}</span>%</p>
-        <p><strong>Température :</strong> <span id="latest-temperature">{{ latest_data.temperature }}</span>°C</p>
-        <p><strong>Signal :</strong> <span id="latest-signal">{{ latest_data.signal_strength }}</span></p>
-        {% else %}
-        <p>Aucune donnée disponible pour le moment.</p>
+    <!-- Titre de la page et bouton de déconnexion -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-center">📊 Détails et Analyse de la Poubelle {{ bin.bin_id }}</h2>
+        {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Déconnexion</button>
+        </form>
         {% endif %}
     </div>
 
-    <!-- Graphique d'analyse -->
-    <hr>
-    <h4>Graphique d'Analyse des Données</h4>
-    <canvas id="binChart" width="400" height="200"></canvas>
-
-    <!-- Indicateur d'erreur -->
-    <div id="error-message" class="alert alert-danger mt-3" style="display: none;">
-        Impossible de récupérer les données. Vérifiez votre connexion ou contactez un administrateur.
+    <!-- Mini tableau de bord avec widgets -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title">Niveau de Remplissage</h5>
+                    <h3 class="{% if latest_data.level > 80 %}text-danger{% elif latest_data.level > 50 %}text-warning{% else %}text-success{% endif %}">
+                        {{ latest_data.level }}%
+                    </h3>
+                    <p class="card-text">Seuil Critique: 80%</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title">Température</h5>
+                    <h3>{{ latest_data.temperature }}°C</h3>
+                    <p class="card-text">Température ambiante enregistrée</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title">Dernière Mise à Jour</h5>
+                    <h3>{{ latest_data.timestamp }}</h3>
+                    <p class="card-text">Données mises à jour en temps réel</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Inclure Chart.js -->
+    <!-- Informations détaillées -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Informations sur la Poubelle</h4>
+                    <p><strong>Type:</strong> {{ bin.type }}</p>
+                    <p><strong>Emplacement:</strong> {{ bin.location }}</p>
+                    <p><strong>Capacité:</strong> {{ bin.capacity }} L</p>
+                    <p><strong>Statut:</strong> 
+                        <span id="bin-status" class="{% if is_full %}text-danger{% else %}text-success{% endif %}">
+                            {% if is_full %} Pleine {% else %} Vide {% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="alert alert-{{ alert_class }} text-center">
+                {% if latest_data %}
+                    {% if latest_data.level > 80 %}
+                    🚨 <strong>Attention !</strong> La poubelle est pleine.
+                    {% elif latest_data.level > 50 %}
+                    ⚠️ <strong>Alerte !</strong> La poubelle est à moitié remplie.
+                    {% else %}
+                    ✅ <strong>Tout va bien.</strong> La poubelle est vide.
+                    {% endif %}
+                {% else %}
+                    <strong>Pas de données disponibles.</strong>
+                {% endif %}
+            </div>
+        </div>
+        
+
+    <!-- Graphique d'analyse -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <h4 class="card-title">Graphique d'Analyse des Données</h4>
+            <canvas id="binChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart.js pour le graphique -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-       const binId = "{{ bin.bin_id|default:'B001' }}"; // Définit 'B001' comme valeur par défaut si bin_id est vide
+        const binId = "{{ bin.bin_id|default:'B001' }}";
+        const initialChartData = JSON.parse('{{ chart_data|escapejs }}');
 
-        const initialChartData = JSON.parse('{{ chart_data|escapejs }}'); // Données initiales du graphique
-    
         const ctx = document.getElementById('binChart').getContext('2d');
         const binChart = new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: initialChartData.timestamps,
                 datasets: [
@@ -61,14 +105,14 @@
                         data: initialChartData.levels,
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
+                        borderWidth: 2,
                     },
                     {
                         label: 'Température (°C)',
                         data: initialChartData.temperatures,
                         backgroundColor: 'rgba(255, 99, 132, 0.2)',
                         borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1,
+                        borderWidth: 2,
                     },
                 ],
             },
@@ -97,7 +141,7 @@
                 },
             },
         });
-    
+
         function fetchLatestData() {
             fetch(`/garbage/api/bin/${binId}/latest/`)
                 .then((response) => {
@@ -108,23 +152,20 @@
                 })
                 .then((data) => {
                     if (data) {
-                        // Mettre à jour les informations affichées
                         document.getElementById('latest-date').textContent = data.timestamp || 'Non disponible';
                         document.getElementById('latest-level').textContent = data.level !== null ? `${data.level}%` : 'Non disponible';
                         document.getElementById('latest-temperature').textContent = data.temperature !== null ? `${data.temperature}°C` : 'Non disponible';
-    
-                        // Mise à jour du graphique
+
                         binChart.data.labels.push(data.timestamp);
                         binChart.data.datasets[0].data.push(data.level);
                         binChart.data.datasets[1].data.push(data.temperature);
-    
-                        // Limiter à 10 points maximum sur le graphique
+
                         if (binChart.data.labels.length > 10) {
                             binChart.data.labels.shift();
                             binChart.data.datasets[0].data.shift();
                             binChart.data.datasets[1].data.shift();
                         }
-    
+
                         binChart.update();
                     }
                 })
@@ -132,12 +173,10 @@
                     console.error('Erreur lors de la récupération des données :', error);
                 });
         }
-    
-        // Actualisation automatique toutes les 5 secondes
+
         setInterval(fetchLatestData, 5000);
-    
-        // Appel initial pour charger les premières données
         fetchLatestData();
     </script>
-    
-    {% endblock %}
+</div>
+{% endblock %}
+
