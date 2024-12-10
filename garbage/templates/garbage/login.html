@@ -1,5 +1,6 @@
 {% extends "garbage/base.html" %}
 {% load custom_filters %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
@@ -7,13 +8,14 @@
     <form method="post" class="mx-auto" style="max-width: 400px;">
         {% csrf_token %}
         <div class="mb-3">
-            <label for="id_username" class="form-label">Nom d'utilisateur</label>
-            {{ form.username|add_class:"form-control" }}
+            <label for="username" class="form-label">Nom d'utilisateur</label>
+            <input type="text" name="username" class="form-control" id="username" placeholder="Entrez votre nom d'utilisateur" required>
         </div>
         <div class="mb-3">
-            <label for="id_password" class="form-label">Mot de passe</label>
-            {{ form.password|add_class:"form-control" }}
+            <label for="password" class="form-label">Mot de passe</label>
+            <input type="password" name="password" class="form-control" id="password" placeholder="Entrez votre mot de passe" required>
         </div>
+
         <button type="submit" class="btn btn-primary w-100">Se connecter</button>
     </form>
     <div class="mt-3 text-center">

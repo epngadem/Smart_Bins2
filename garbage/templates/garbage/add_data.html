@@ -1,6 +1,9 @@
 {% extends 'garbage/base.html' %}
+{% load static %}
 
 {% block content %}
+
+
     <h2>Ajouter des données pour une poubelle</h2>
     <form method="POST">
         {% csrf_token %}

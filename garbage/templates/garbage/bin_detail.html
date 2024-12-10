@@ -1,11 +1,12 @@
 {% extends "garbage/base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
-    <!-- Titre de la page et bouton de déconnexion -->
+    <!-- Titre principal avec bouton de déconnexion -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-center">📊 Détails et Analyse de la Poubelle {{ bin.bin_id }}</h2>
-        {% if user.is_authenticated %}
+        {% if user %}
         <form method="POST" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Déconnexion</button>
@@ -19,7 +20,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h5 class="card-title">Niveau de Remplissage</h5>
-                    <h3 class="{% if latest_data.level > 80 %}text-danger{% elif latest_data.level > 50 %}text-warning{% else %}text-success{% endif %}">
+                    <h3 id="latest-level" class="{% if latest_data.level > 70 %}text-danger{% elif latest_data.level > 50 %}text-warning{% else %}text-success{% endif %}">
                         {{ latest_data.level }}%
                     </h3>
                     <p class="card-text">Seuil Critique: 80%</p>
@@ -30,7 +31,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h5 class="card-title">Température</h5>
-                    <h3>{{ latest_data.temperature }}°C</h3>
+                    <h3 id="latest-temperature">{{ latest_data.temperature }}°C</h3>
                     <p class="card-text">Température ambiante enregistrée</p>
                 </div>
             </div>
@@ -39,7 +40,7 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <h5 class="card-title">Dernière Mise à Jour</h5>
-                    <h3>{{ latest_data.timestamp }}</h3>
+                    <h3 id="latest-date">{{ latest_data.timestamp }}</h3>
                     <p class="card-text">Données mises à jour en temps réel</p>
                 </div>
             </div>
@@ -64,9 +65,9 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="alert alert-{{ alert_class }} text-center">
+            <div id="bin-alert" class="alert alert-{{ alert_class }} text-center">
                 {% if latest_data %}
-                    {% if latest_data.level > 80 %}
+                    {% if latest_data.level > 70 %}
                     🚨 <strong>Attention !</strong> La poubelle est pleine.
                     {% elif latest_data.level > 50 %}
                     ⚠️ <strong>Alerte !</strong> La poubelle est à moitié remplie.
@@ -78,7 +79,7 @@
                 {% endif %}
             </div>
         </div>
-        
+    </div>
 
     <!-- Graphique d'analyse -->
     <div class="card shadow-sm mt-4">
@@ -142,7 +143,8 @@
             },
         });
 
-        function fetchLatestData() {
+        // Fonction pour récupérer les données les plus récentes et mettre à jour la page
+        function fetchLatestDataAndUpdatePage() {
             fetch(`/garbage/api/bin/${binId}/latest/`)
                 .then((response) => {
                     if (!response.ok) {
@@ -152,10 +154,35 @@
                 })
                 .then((data) => {
                     if (data) {
+                        // Mise à jour des données textuelles
                         document.getElementById('latest-date').textContent = data.timestamp || 'Non disponible';
                         document.getElementById('latest-level').textContent = data.level !== null ? `${data.level}%` : 'Non disponible';
                         document.getElementById('latest-temperature').textContent = data.temperature !== null ? `${data.temperature}°C` : 'Non disponible';
 
+                        // Mise à jour des alertes
+                        const alertElement = document.getElementById('bin-alert');
+                        if (data.level > 70) {
+                            alertElement.className = 'alert alert-danger text-center';
+                            alertElement.innerHTML = `🚨 <strong>Attention !</strong> La poubelle est pleine.`;
+                        } else if (data.level > 50) {
+                            alertElement.className = 'alert alert-warning text-center';
+                            alertElement.innerHTML = `⚠️ <strong>Alerte !</strong> La poubelle est à moitié remplie.`;
+                        } else {
+                            alertElement.className = 'alert alert-success text-center';
+                            alertElement.innerHTML = `✅ <strong>Tout va bien.</strong> La poubelle est vide.`;
+                        }
+
+                        // Mise à jour du statut
+                        const statusElement = document.getElementById('bin-status');
+                        if (data.level > 70) {
+                            statusElement.className = 'text-danger';
+                            statusElement.textContent = 'Pleine';
+                        } else {
+                            statusElement.className = 'text-success';
+                            statusElement.textContent = 'Vide';
+                        }
+
+                        // Mise à jour du graphique
                         binChart.data.labels.push(data.timestamp);
                         binChart.data.datasets[0].data.push(data.level);
                         binChart.data.datasets[1].data.push(data.temperature);
@@ -174,9 +201,9 @@
                 });
         }
 
-        setInterval(fetchLatestData, 5000);
-        fetchLatestData();
+        // Actualisation automatique toutes les 5 secondes
+        setInterval(fetchLatestDataAndUpdatePage, 5000);
+        fetchLatestDataAndUpdatePage();
     </script>
 </div>
 {% endblock %}
-

@@ -1,0 +1,60 @@
+{% extends "garbage/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accès refusé</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEJXxT7U1Yk2OaPCOpy9fVOk4pMv5g36r6uE6zwx2pZ9wXHz2Rk/J9p8O6zoF" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .error-container {
+            background-color: #fff;
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
+        }
+        .error-icon {
+            font-size: 60px;
+            color: #dc3545;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <div class="error-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <h2>Accès refusé</h2>
+        <p>Vous n'avez pas les permissions nécessaires pour accéder à cette ressource. Veuillez contacter un administrateur ou essayer plus tard.</p>
+        <a href="/" class="btn-custom">Retour à l'accueil</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz4fnFO9gybGz4f3cB4kGgZ9IbzPxB8hXGp2rbKb5p8FcCbXzZ5n0wGf2Y" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js" integrity="sha384-pzjw8f+ua7Kw1TIq0q5b3o2v8T4s3CSPnDlf58eqn04EL2v8pMj0Zr8E5t+Pr23z" crossorigin="anonymous"></script>
+</body>
+</html>
+{% endblock %}
+

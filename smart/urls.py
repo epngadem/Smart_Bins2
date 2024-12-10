@@ -14,27 +14,28 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
-# smart/urls.py
 from django.contrib import admin
 from django.urls import include, path
 from django.contrib.auth.views import LogoutView, LoginView
-from garbage.views import fetch_latest_data
+from garbage.views import bin_detail_view
+from django.conf import settings
+from django.conf.urls.static import static
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from garbage.views import bin_detail_view  # Import de la vue principale
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', bin_detail_view, name='home'),  # Redirige la racine vers bin_detail_view
+    path('', bin_detail_view, name='home'),  # Page d'accueil par défaut
     path('garbage/', include('garbage.urls')),  # Inclut les URLs de l'application garbage
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # API pour obtenir un token
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # API pour rafraîchir un token
     path('logout/', LogoutView.as_view(next_page='/'), name='logout'),  # Déconnexion
-    path('login/', LoginView.as_view(template_name='garbage/login.html'), name='login'),
-    path('', fetch_latest_data, {'bin_id': 'B001'}, name='home'),  # Par défaut, afficher les données de B001
-   
+    path('login/', LoginView.as_view(template_name='garbage/login.html'), name='login'),  # Connexion
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

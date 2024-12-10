@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-3&gv1ax#p_fun%@12^&
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = ['127.0.0.1','192.168.20.105']
+ALLOWED_HOSTS = ['127.0.0.1','192.168.20.115']
 
 
 # Application definition
@@ -83,7 +83,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'smart.wsgi.application'
 LOGIN_URL = '/login/'
+# Chemin où collectstatic rassemblera les fichiers statiques
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -103,8 +107,24 @@ DATABASES = {
         'PASSWORD': '1234',
         'HOST': 'localhost',
         'PORT': '5432'
-    }
+    },
+    # 'secondary': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'secondary_db',
+    #     'USER': 'ngadem',
+    #     'PASSWORD': 'ngadem',
+    #     'HOST': 'localhost',
+    #     'PORT': '5432',
+    # }
+
+
+
 }
+
+AUTHENTICATION_BACKENDS = [
+    'garbage.auth_backends.PostgresAuthBackend',
+]
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -135,6 +155,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+#DATABASE_ROUTERS = ['smart.database_router.DatabaseRouter']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/

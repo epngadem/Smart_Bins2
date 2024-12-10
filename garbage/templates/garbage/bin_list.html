@@ -1,92 +1,58 @@
+{% extends "garbage/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bin Monitoring System</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-<body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="{% url 'home' %}">Accueil</a></li>
-                <li><a href="{% url 'add_bin' %}">Ajouter une poubelle</a></li>
-                <li><a href="{% url 'add_data' %}">Ajouter des données</a></li>
-            </ul>
-        </nav>
+
+{% block content %}
+    <!-- Page Title -->
+    <header class="py-4 bg-light text-center">
+        <h1 class="display-5">Bin Monitoring System</h1>
     </header>
 
-    <h1>Bin Monitoring System</h1>
-
-    <div>
-        <a href="?status=Disponible">Afficher les poubelles disponibles</a> |
-        <a href="?status=Pleine">Afficher les poubelles pleines</a> |
-        <a href="?status=En cours de Collecte">Afficher les poubelles en cours de collecte</a> |
-        <a href="?">Afficher toutes les poubelles</a>
+    <!-- Filters -->
+    <div class="container text-center my-4">
+        <a href="?status=Disponible" class="btn btn-success me-2">Pou. disponibles</a>
+        <a href="?status=Pleine" class="btn btn-danger me-2">Pou. pleines</a>
+        <a href="?status=En cours de Collecte" class="btn btn-warning me-2">En collecte</a>
+        <a href="?" class="btn btn-secondary">Toutes les poubelles</a>
     </div>
 
-    <div class="bin-container">
-        {% for bin in bins %}
-            <div class="bin-card">
-                <div class="bin-info">
-                    <strong>Bin ID:</strong> {{ bin.bin_id }}<br>
-                    <strong>Location:</strong> {{ bin.location }}<br>
-                    <strong>Capacity:</strong> {{ bin.capacity }} L<br>
-                    <strong>Type:</strong> {{ bin.type }}<br>
-                    <strong>Status:</strong> {{ bin.status }}<br>
-                    <strong>Last Emptied At:</strong> {{ bin.last_emptied_at }}<br>
+    <!-- Bin List -->
+    <div class="container">
+        <div class="row">
+            {% for bin in bins %}
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">Poubelle ID: {{ bin.bin_id }}</h5>
+                            <p><strong>Emplacement:</strong> {{ bin.location }}</p>
+                            <p><strong>Capacité:</strong> {{ bin.capacity }} L</p>
+                            <p><strong>Type:</strong> {{ bin.type }}</p>
+                            <p><strong>Status:</strong> {{ bin.status }}</p>
+                            <p><strong>Dernière vidange:</strong> {{ bin.last_emptied_at }}</p>
+
+                            {% if bin.latest_data %}
+                                <div class="alert alert-{{ bin.alert_level }} mt-3">
+                                    <p>{{ bin.alert_message }}</p>
+                                </div>
+                                {% if bin.temperature_alert %}
+                                    <div class="alert alert-danger mt-3">
+                                        <p>{{ bin.temperature_message }}</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-info mt-3">
+                                    Aucune donnée disponible pour cette poubelle.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-
-                <div class="data-collection">
-                    <h3>Data Collection:</h3>
-                    <ul>
-                        {% for data in bin.data_collections.all %}
-                            <li>
-                                <strong>Level:</strong> {{ data.level }} %<br>
-                                <strong>Temperature:</strong> {{ data.temperature }} °C<br>
-                                <strong>Signal Strength:</strong> {{ data.signal_strength }} %<br>
-                                <strong>Date:</strong> {{ data.timestamp }}<br>
-                            </li>
-                        {% empty %}
-                            <li>Aucune donnée disponible pour cette poubelle.</li>
-                        {% endfor %}
-                    </ul>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">
+                        Aucune poubelle disponible.
+                    </div>
                 </div>
-
-                {% if bin.latest_data %}
-                    {% if bin.latest_data.level <= 30 %}
-                        <div class="alert alert-green">
-                            <img src="{% static 'images/green.png' %}" alt="Poubelle vide">
-                            Poubelle vide ou moins de 30 % pleine
-                        </div>
-                    {% elif bin.latest_data.level > 30 and bin.latest_data.level <= 70 %}
-                        <div class="alert alert-orange">
-                            <img src="{% static 'images/orange.png' %}" alt="Poubelle mi-pleine">
-                            Poubelle entre 30 % et 70 % pleine
-                        </div>
-                    {% elif bin.latest_data.level > 70 %}
-                        <div class="alert alert-red">
-                            <img src="{% static 'images/red.png' %}" alt="Poubelle pleine">
-                            Poubelle plus de 70 % pleine
-                        </div>
-                    {% endif %}
-
-                    {% if bin.latest_data.temperature > 25 %}
-                        <div class="alert alert-red">
-                            <img src="{% static 'images/red.png' %}" alt="Alerte de température">
-                            Température élevée : {{ bin.latest_data.temperature }} °C
-                        </div>
-                    {% endif %}
-                {% endif %}
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
-</body>
-</html>
-
-
-
-
-
+{% endblock %}

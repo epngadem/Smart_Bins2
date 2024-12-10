@@ -1,0 +1,25 @@
+{% extends "garbage/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Créer un compte</h2>
+    <form method="POST" action="{% url 'register' %}">
+        {% csrf_token %}
+        <div>
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" name="username" id="username" required>
+        </div>
+        <div>
+            <label for="password">Mot de passe</label>
+            <input type="password" name="password" id="password" required>
+        </div>
+        <div>
+            <label for="confirm_password">Confirmez le mot de passe</label>
+            <input type="password" name="confirm_password" id="confirm_password" required>
+        </div>
+        <button type="submit">S'inscrire</button>
+    </form>
+    
+</div>
+{% endblock %}
